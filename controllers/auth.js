@@ -96,7 +96,7 @@ exports.login = (req, res, next) => {
     .then((user) => {
       if (!user) {
         const error = new Error("A user with this email could not be found.");
-        error.statusCode = 401;
+        error.statusCode = 403;
         throw error;
       }
       loadedUser = user;
@@ -105,7 +105,7 @@ exports.login = (req, res, next) => {
     .then((isEqual) => {
       if (!isEqual) {
         const error = new Error("Wrong password!");
-        error.statusCode = 401;
+        error.statusCode = 403;
         throw error;
       }
       const token = jwt.sign(
