@@ -21,15 +21,6 @@ router.post(
       })
       .normalizeEmail(),
     body("password").trim().isLength({ min: 6 }),
-    body("confirmPassword")
-      .notEmpty()
-      .withMessage("Confirm password is required")
-      .custom((value, { req }) => {
-        if (value !== req.body.password) {
-          throw new Error("Passwords do not match");
-        }
-        return true;
-      }),
   ],
   authController.signupUsingEmail
 );
