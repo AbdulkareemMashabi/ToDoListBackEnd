@@ -21,20 +21,28 @@ const taskSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    calendarId: {
+      type: String,
+    },
+    color: {
+      type: String,
+    },
     subTasks: [
       {
         title: {
           type: String,
-          required: true,
         },
         status: {
           type: Boolean,
           default: false,
         },
-        type: Schema.Types.ObjectId,
-        ref: "User",
       },
     ],
+    creator: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true }
 );
