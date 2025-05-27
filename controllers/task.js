@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
+const Task = require("../models/Task");
 
 exports.getAllTasks = (req, res, next) => {
   const errors = validationResult(req);
@@ -31,20 +32,26 @@ exports.createTask = (req, res, next) => {
     throw error;
   }
 
-  const { title, date, description } = req?.body;
+  const { title, date, description, calendarId, color } = req?.body;
 
-  User.findById(req.userId)
-    .then((user) => {
-      user.tasks.push({
-        title,
-        date,
-        description,
-        subTasks: [],
-      });
-      return user.save();
+  const newTask = new Task({
+    title,
+    date,
+    description,
+    calendarId,
+    color,
+    subTasks: [],
+    creator: req.userId,
+  });
+  newTask
+    .save()
+    .then(async (task) => {
+      const user = await User.findById(req.userId);
+      user.tasks.push(task);
+      return await user.save();
     })
     .then(() => {
-      return res.json({});
+      res.status(201).json({});
     })
     .catch((err) => {
       if (!err.statusCode) {
