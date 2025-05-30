@@ -44,9 +44,15 @@ exports.signupUsingEmail = (req, res, next) => {
 };
 
 exports.signupUsingDeviceIdAndLogin = (req, res, next) => {
-  const encryptedDeviceId = req.body.deviceId;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed.");
+    error.statusCode = 422;
+    error.data = errors.array();
+    throw error;
+  }
 
-  console.log(encryptedDeviceId);
+  const encryptedDeviceId = req.body.deviceId;
 
   const decryptedDeviceId = CryptoJS.AES.decrypt(
     encryptedDeviceId,
@@ -56,7 +62,6 @@ exports.signupUsingDeviceIdAndLogin = (req, res, next) => {
   User.findOne({ deviceId: decryptedDeviceId })
     .then((user) => {
       if (!user) {
-        console.log(decryptedDeviceId, "mdre");
         const user = new User({
           deviceId: decryptedDeviceId,
           tasks: [],
@@ -85,6 +90,14 @@ exports.signupUsingDeviceIdAndLogin = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed.");
+    error.statusCode = 422;
+    error.data = errors.array();
+    throw error;
+  }
+
   const email = req.body.email;
   const encryptedPassword = req.body.password;
   const decryptedPassword = CryptoJS.AES.decrypt(
