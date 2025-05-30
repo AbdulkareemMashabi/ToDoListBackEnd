@@ -91,7 +91,7 @@ exports.updateTaskStatus = (req, res, next) => {
       Object.assign(task, newValues); // Merge new values into the task object
       return task.save();
     })
-    .then((task) => {
+    .then(() => {
       res.json({});
     })
     .catch((err) => {
@@ -109,7 +109,7 @@ exports.updateFavorite = (req, res, next) => {
     .then(async (user) => {
       return await handleFavoriteTask(taskId, user);
     })
-    .then((user) => {
+    .then(() => {
       res.status(200).json({});
     })
     .catch((err) => {
