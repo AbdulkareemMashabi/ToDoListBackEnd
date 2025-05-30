@@ -26,7 +26,7 @@ router.post(
 );
 
 router.post(
-  "/signupId",
+  "/signup-Id",
   [body("deviceId").notEmpty()],
   authController.signupUsingDeviceIdAndLogin
 );
@@ -47,6 +47,6 @@ router.post(
   authController.login
 );
 
-router.put("/delete", isAuth, authController.deleteAccount);
+router.delete("/delete-account", isAuth, authController.deleteAccount);
 
 module.exports = router;
