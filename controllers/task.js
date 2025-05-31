@@ -19,6 +19,8 @@ exports.getAllTasks = (req, res, next) => {
 exports.createTask = (req, res, next) => {
   const { title, date, description, calendarId, color } = req?.body;
 
+  let createdTask;
+
   const newTask = new Task({
     title,
     date,
@@ -31,12 +33,13 @@ exports.createTask = (req, res, next) => {
   newTask
     .save()
     .then(async (task) => {
+      createdTask = task;
       const user = await User.findById(req.userId);
       user.tasks.push(task);
       return await user.save();
     })
     .then(() => {
-      res.status(201).json({});
+      res.status(201).json({ task: createdTask });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -54,8 +57,8 @@ exports.updateTask = (req, res, next) => {
       Object.assign(task, newValues); // Merge new values into the task object
       return task.save();
     })
-    .then((task) => {
-      res.json({ newData: task });
+    .then(() => {
+      res.json({});
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -74,10 +77,12 @@ exports.updateTaskStatus = (req, res, next) => {
     .then((task) => {
       const isMainCompleted = status;
 
-      for (let i = 0; i < subTasks.length; i++) {
-        if (!subTasks[i].status) {
-          isAllSubTasksCompleted = false;
-          break;
+      if (isAllSubTasksCompleted) {
+        for (let i = 0; i < subTasks.length; i++) {
+          if (!subTasks[i].status) {
+            isAllSubTasksCompleted = false;
+            break;
+          }
         }
       }
 
@@ -91,8 +96,8 @@ exports.updateTaskStatus = (req, res, next) => {
       Object.assign(task, newValues); // Merge new values into the task object
       return task.save();
     })
-    .then(() => {
-      res.json({});
+    .then((task) => {
+      res.json({ updatedTask: task });
     })
     .catch((err) => {
       if (!err.statusCode) {
