@@ -3,8 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
-const MONGODB_URI =
-  "mongodb+srv://asdfpo146:1Qq3e5t7u9o%40%23@cluster0.n6lr0.mongodb.net/toDoList";
+const MONGODB_URI = process?.env?.DATABASE_URL;
 
 app.use(bodyParser.json());
 
