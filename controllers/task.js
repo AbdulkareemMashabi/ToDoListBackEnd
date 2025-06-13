@@ -2,139 +2,112 @@ const User = require("../models/User");
 const Task = require("../models/Task");
 const { handleFavoriteTask } = require("../utils/utils");
 
-exports.getAllTasks = (req, res, next) => {
-  User.findById(req.userId)
-    .populate("tasks")
-    .then((user) => {
-      res.status(200).json({ data: user?.tasks });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
-    });
+exports.getAllTasks = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId).populate("tasks");
+    res.status(200).json({ data: user?.tasks || [] });
+  } catch (err) {
+    err.statusCode = err.statusCode || 500;
+    next(err);
+  }
 };
 
-exports.createTask = (req, res, next) => {
-  const { title, date, description, calendarId, color } = req?.body;
+exports.createTask = async (req, res, next) => {
+  try {
+    const { title, date, description, calendarId, color } = req?.body;
 
-  let createdTask;
-
-  const newTask = new Task({
-    title,
-    date,
-    description,
-    calendarId,
-    color,
-    subTasks: [],
-    creator: req.userId,
-  });
-  newTask
-    .save()
-    .then(async (task) => {
-      createdTask = task;
-      const user = await User.findById(req.userId);
-      user.tasks.push(task);
-      return await user.save();
-    })
-    .then(() => {
-      res.status(201).json({ task: createdTask });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    const newTask = new Task({
+      title,
+      date,
+      description,
+      calendarId,
+      color,
+      subTasks: [],
+      creator: req.userId,
     });
+
+    const createdTask = await newTask.save();
+    const user = await User.findById(req.userId);
+
+    user.tasks.push(createdTask);
+    await user.save();
+
+    res.status(201).json({ task: createdTask });
+  } catch (err) {
+    err.statusCode = err.statusCode || 500;
+    next(err);
+  }
 };
 
-exports.updateTask = (req, res, next) => {
-  const { taskId, newValues } = req?.body;
+exports.updateTask = async (req, res, next) => {
+  try {
+    const { taskId, newValues } = req?.body;
+    const task = await Task.findById(taskId);
 
-  Task.findById(taskId)
-    .then((task) => {
-      Object.assign(task, newValues); // Merge new values into the task object
-      return task.save();
-    })
-    .then(() => {
-      res.json({});
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
-    });
+    if (!task) throw new Error("Task not found");
+
+    Object.assign(task, newValues);
+    await task.save();
+
+    res.json({});
+  } catch (err) {
+    err.statusCode = err.statusCode || 500;
+    next(err);
+  }
 };
 
-exports.updateTaskStatus = (req, res, next) => {
-  const { taskId, newValues } = req?.body;
-  const { subTasks, status } = newValues || {};
-  let isAllSubTasksCompleted = subTasks?.length;
+exports.updateTaskStatus = async (req, res, next) => {
+  try {
+    const { taskId, newValues } = req?.body;
+    const { subTasks, status } = newValues || {};
+    let isAllSubTasksCompleted = subTasks?.length;
 
-  Task.findById(taskId)
-    .then((task) => {
-      const isMainCompleted = status;
+    const task = await Task.findById(taskId);
+    if (!task) throw new Error("Task not found");
 
-      if (isAllSubTasksCompleted) {
-        for (let i = 0; i < subTasks.length; i++) {
-          if (!subTasks[i].status) {
-            isAllSubTasksCompleted = false;
-            break;
-          }
-        }
-      }
+    const isMainCompleted = status;
 
-      if (isMainCompleted || isAllSubTasksCompleted) {
-        newValues.status = true;
-        newValues.subTasks.forEach((item) => {
-          item.status = true;
-        });
-      }
+    if (isAllSubTasksCompleted) {
+      isAllSubTasksCompleted = subTasks.every((subTask) => subTask.status);
+    }
 
-      Object.assign(task, newValues); // Merge new values into the task object
-      return task.save();
-    })
-    .then((task) => {
-      res.json({ updatedTask: task });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
-    });
+    if (isMainCompleted || isAllSubTasksCompleted) {
+      newValues.status = true;
+      newValues.subTasks?.forEach((item) => (item.status = true));
+    }
+
+    Object.assign(task, newValues);
+    await task.save();
+
+    res.json({ updatedTask: task });
+  } catch (err) {
+    err.statusCode = err.statusCode || 500;
+    next(err);
+  }
 };
 
-exports.updateFavorite = (req, res, next) => {
-  const { taskId } = req?.body;
-  User.findById(req.userId)
-    .populate("tasks")
-    .then(async (user) => {
-      return await handleFavoriteTask(taskId, user);
-    })
-    .then(() => {
-      res.status(200).json({});
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
-    });
+exports.updateFavorite = async (req, res, next) => {
+  try {
+    const { taskId } = req?.body;
+    const user = await User.findById(req.userId).populate("tasks");
+
+    if (!user) throw new Error("User not found");
+
+    await handleFavoriteTask(taskId, user);
+    res.status(200).json({});
+  } catch (err) {
+    err.statusCode = err.statusCode || 500;
+    next(err);
+  }
 };
 
-exports.deleteTask = (req, res, next) => {
-  const { taskId } = req?.body;
-  Task.findByIdAndDelete(taskId)
-    .then(() => {
-      res.json({});
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
-    });
+exports.deleteTask = async (req, res, next) => {
+  try {
+    const { taskId } = req?.body;
+    await Task.findByIdAndDelete(taskId);
+    res.json({});
+  } catch (err) {
+    err.statusCode = err.statusCode || 500;
+    next(err);
+  }
 };
