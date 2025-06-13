@@ -44,7 +44,7 @@ exports.updateTask = async (req, res, next) => {
     const { taskId, newValues } = req?.body;
     const task = await Task.findById(taskId);
 
-    if (!task) throw new Error("Task not found");
+    if (!task) throw new Error(req.jsonLanguage.taskNotFound);
 
     Object.assign(task, newValues);
     await task.save();
@@ -63,7 +63,7 @@ exports.updateTaskStatus = async (req, res, next) => {
     let isAllSubTasksCompleted = subTasks?.length;
 
     const task = await Task.findById(taskId);
-    if (!task) throw new Error("Task not found");
+    if (!task) throw new Error(req.jsonLanguage.taskNotFound);
 
     const isMainCompleted = status;
 
@@ -91,7 +91,7 @@ exports.updateFavorite = async (req, res, next) => {
     const { taskId } = req?.body;
     const user = await User.findById(req.userId).populate("tasks");
 
-    if (!user) throw new Error("User not found");
+    if (!user) throw new Error(req.jsonLanguage.userNotFound);
 
     await handleFavoriteTask(taskId, user);
     res.status(200).json({});

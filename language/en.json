@@ -1,0 +1,10 @@
+{
+  "validEmailAddress": "Please enter a valid email.",
+  "emailExist": "E-Mail address already exists!",
+  "notAuthenticated": "Not Authenticated",
+  "wrongPassword": "Wrong password!",
+  "userCannotBeFound": "A user with this email could not be found.",
+  "taskNotFound": "Task Not Found",
+  "userNotFound": "User not found",
+  "anErrorOccurred": "An Error Occurred please try again later"
+}

@@ -10,8 +10,9 @@ app.use(bodyParser.json());
 
 const authRoutes = require("./routes/auth");
 const taskRoutes = require("./routes/task");
+const languages = require("./language");
 
-app.use((req, res, next) => {
+app.use((_, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -21,14 +22,20 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, _, next) => {
+  const language = req.headers["accept-language"];
+  req.jsonLanguage = languages[language];
+
+  next();
+});
+
 app.use("/auth", authRoutes);
 app.use("/task", taskRoutes);
 
-app.use((error, req, res, next) => {
+app.use((error, req, res, _) => {
   const status = error.statusCode || 500;
-  const message = error.message;
-  const data = error.data;
-  res.status(status).json({ message, data });
+  const message = error.message || req.jsonLanguage["anErrorOccurred"];
+  res.status(status).json({ message });
 });
 
 mongoose

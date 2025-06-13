@@ -9,9 +9,8 @@ exports.signupUsingEmail = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error("Validation failed.");
+      const error = new Error(req.jsonLanguage[errors.array()[0].msg]);
       error.statusCode = 422;
-      error.data = errors.array();
       throw error;
     }
 
@@ -26,7 +25,7 @@ exports.signupUsingEmail = async (req, res, next) => {
     const user = new User({ email, password: hashedPw, tasks: [] });
 
     const result = await user.save();
-    res.status(201).json({ message: "User created!", userId: result._id });
+    res.status(201).json({ userId: result._id });
   } catch (err) {
     if (!err.statusCode) err.statusCode = 500;
     next(err);
@@ -37,9 +36,8 @@ exports.signupUsingDeviceIdAndLogin = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error("Validation failed.");
+      const error = new Error(req.jsonLanguage[errors.array()[0].msg]);
       error.statusCode = 422;
-      error.data = errors.array();
       throw error;
     }
 
@@ -73,9 +71,8 @@ exports.login = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error("Validation failed.");
+      const error = new Error(req.jsonLanguage[errors.array()[0].msg]);
       error.statusCode = 422;
-      error.data = errors.array();
       throw error;
     }
 
@@ -88,14 +85,14 @@ exports.login = async (req, res, next) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      const error = new Error("A user with this email could not be found.");
+      const error = new Error(req.jsonLanguage.userCannotBeFound);
       error.statusCode = 403;
       throw error;
     }
 
     const isEqual = await bcrypt.compare(decryptedPassword, user.password);
     if (!isEqual) {
-      const error = new Error("Wrong password!");
+      const error = new Error(req.jsonLanguage.wrongPassword);
       error.statusCode = 403;
       throw error;
     }

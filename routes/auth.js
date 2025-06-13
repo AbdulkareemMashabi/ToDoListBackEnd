@@ -12,11 +12,11 @@ router.post(
   [
     body("email")
       .isEmail()
-      .withMessage("Please enter a valid email.")
+      .withMessage("validEmailAddress")
       .custom(async (value) => {
         const userDoc = await User.findOne({ email: value });
         if (userDoc) {
-          return Promise.reject("E-Mail address already exists!");
+          return Promise.reject("emailExist");
         }
       })
       .normalizeEmail(),
@@ -35,11 +35,11 @@ router.post(
   "/login",
   body("email")
     .isEmail()
-    .withMessage("Please enter a valid email.")
+    .withMessage("validEmailAddress")
     .custom(async (value) => {
       const userDoc = await User.findOne({ email: value });
       if (!userDoc) {
-        return Promise.reject("E-Mail address does not exists!");
+        return Promise.reject("emailExist");
       }
     })
     .normalizeEmail(),
