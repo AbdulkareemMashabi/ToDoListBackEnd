@@ -7,8 +7,7 @@ exports.getAllTasks = async (req, res, next) => {
     const user = await User.findById(req.userId).populate("tasks");
     res.status(200).json({ data: user?.tasks || [] });
   } catch (err) {
-    err.statusCode = err.statusCode || 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
@@ -34,8 +33,7 @@ exports.createTask = async (req, res, next) => {
 
     res.status(201).json({ task: createdTask });
   } catch (err) {
-    err.statusCode = err.statusCode || 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
@@ -51,8 +49,7 @@ exports.updateTask = async (req, res, next) => {
 
     res.json({});
   } catch (err) {
-    err.statusCode = err.statusCode || 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
@@ -81,8 +78,7 @@ exports.updateTaskStatus = async (req, res, next) => {
 
     res.json({ updatedTask: task });
   } catch (err) {
-    err.statusCode = err.statusCode || 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
@@ -96,8 +92,7 @@ exports.updateFavorite = async (req, res, next) => {
     await handleFavoriteTask(taskId, user);
     res.status(200).json({});
   } catch (err) {
-    err.statusCode = err.statusCode || 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
@@ -107,7 +102,6 @@ exports.deleteTask = async (req, res, next) => {
     await Task.findByIdAndDelete(taskId);
     res.json({});
   } catch (err) {
-    err.statusCode = err.statusCode || 500;
-    next(err);
+    catchErrors(err, next);
   }
 };

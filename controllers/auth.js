@@ -1,18 +1,13 @@
 require("dotenv").config();
 const CryptoJS = require("crypto-js");
-const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { handleSchemaErrors, catchErrors } = require("../utils/utils");
 
 exports.signupUsingEmail = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error(req.jsonLanguage[errors.array()[0].msg]);
-      error.statusCode = 422;
-      throw error;
-    }
+    handleSchemaErrors(req);
 
     const email = req.body.email;
     const encryptedPassword = req.body.password;
@@ -27,19 +22,13 @@ exports.signupUsingEmail = async (req, res, next) => {
     const result = await user.save();
     res.status(201).json({ userId: result._id });
   } catch (err) {
-    if (!err.statusCode) err.statusCode = 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
 exports.signupUsingDeviceIdAndLogin = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error(req.jsonLanguage[errors.array()[0].msg]);
-      error.statusCode = 422;
-      throw error;
-    }
+    handleSchemaErrors(req);
 
     const encryptedDeviceId = req.body.deviceId;
     const decryptedDeviceId = CryptoJS.AES.decrypt(
@@ -62,19 +51,13 @@ exports.signupUsingDeviceIdAndLogin = async (req, res, next) => {
 
     res.status(200).json({ token, userId: user._id.toString() });
   } catch (err) {
-    if (!err.statusCode) err.statusCode = 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
 exports.login = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error(req.jsonLanguage[errors.array()[0].msg]);
-      error.statusCode = 422;
-      throw error;
-    }
+    handleSchemaErrors(req);
 
     const email = req.body.email;
     const encryptedPassword = req.body.password;
@@ -105,8 +88,7 @@ exports.login = async (req, res, next) => {
 
     res.status(200).json({ token, userId: user._id.toString() });
   } catch (err) {
-    if (!err.statusCode) err.statusCode = 500;
-    next(err);
+    catchErrors(err, next);
   }
 };
 
@@ -115,7 +97,6 @@ exports.deleteAccount = async (req, res, next) => {
     await User.findByIdAndDelete(req.userId);
     res.json({});
   } catch (err) {
-    if (!err.statusCode) err.statusCode = 500;
-    next(err);
+    catchErrors(err, next);
   }
 };

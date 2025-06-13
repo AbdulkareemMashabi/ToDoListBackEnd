@@ -1,3 +1,5 @@
+const { validationResult } = require("express-validator");
+
 exports.handleFavoriteTask = async (taskId, user) => {
   let oldFavoriteTaskIndex;
   let newFavoriteTaskIndex;
@@ -32,4 +34,18 @@ exports.handleFavoriteTask = async (taskId, user) => {
   }
 
   return await user.save();
+};
+
+exports.handleSchemaErrors = (req) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error(req.jsonLanguage[errors.array()[0].msg]);
+    error.statusCode = 422;
+    throw error;
+  }
+};
+
+exports.catchErrors = (error, next) => {
+  if (!error.statusCode) error.statusCode = 500;
+  next(error);
 };
